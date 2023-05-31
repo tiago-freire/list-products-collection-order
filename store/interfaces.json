@@ -1,0 +1,10 @@
+{
+  "list-products-collection-order-v2": {
+    "allowed": ["product-summary"],
+    "composition": "children",
+    "component": "ListProductsCollectionOrder"
+  },
+  "skeleton": {
+    "component": "Skeleton"
+  }
+}

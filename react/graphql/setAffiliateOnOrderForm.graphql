@@ -1,0 +1,12 @@
+mutation setAffiliateOnOrderForm($slug: String, $orderFormId: String) {
+  setAffiliateOnOrderForm(slug: $slug, orderFormId: $orderFormId)
+    @context(provider: "vtex.affiliates") {
+    customData {
+      customApps {
+        fields
+        id
+        major
+      }
+    }
+  }
+}
