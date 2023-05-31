@@ -1,9 +1,14 @@
 {
-  "memory": 256,
-  "ttl": 10,
-  "timeout": 2,
-  "minReplicas": 2,
-  "maxReplicas": 4,
+  "memory": 1024,
+  "ttl": 300,
+  "timeout": 60,
+  "cpu": {
+    "type": "shared",
+    "value": 5,
+    "scalingPercentage": 20
+  },
+  "minReplicas": 8,
+  "maxReplicas": 80,
   "workers": 1,
   "routes": {
     "collection": {
