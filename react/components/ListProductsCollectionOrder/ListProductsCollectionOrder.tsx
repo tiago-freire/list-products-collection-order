@@ -215,10 +215,16 @@ const ListProductsCollectionOrder = (props: PropsWithChildren<Props>) => {
               })
             })
             setReorderedProducts(newReorderedProducts)
-            setLoadingRest(false)
           }
         })
-        .catch(console.error)
+        .catch(e => {
+          console.error(
+            'Showing default order because of an error retrieving collection:',
+            e
+          )
+          setReorderedProducts(products)
+        })
+        .finally(() => setLoadingRest(false))
     } else {
       setReorderedProducts(products)
       setLoadingRest(false)

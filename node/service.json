@@ -20,16 +20,6 @@
           "actions": ["get"]
         }
       ]
-    },
-    "teste": {
-      "path": "/_v/teste",
-      "public": true,
-      "policies": [
-        {
-          "effect": "allow",
-          "actions": ["get"]
-        }
-      ]
     }
   }
 }
