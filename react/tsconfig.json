@@ -26,15 +26,7 @@
     "strictPropertyInitialization": true
   },
   "exclude": ["node_modules", "node_modules"],
-  "include": [
-    "./typings/*.d.ts",
-    "./**/*.tsx",
-    ".ts",
-    "src/typings/global.d.ts",
-    "./**/*.tsx",
-    "./**/*.ts",
-    "./**/*.d.ts"
-  ],
+  "include": ["./**/*.tsx", "./**/*.ts", "./**/*.d.ts"],
   "typeAcquisition": {
     "enable": false
   }

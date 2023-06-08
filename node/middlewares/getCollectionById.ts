@@ -16,9 +16,6 @@ const getCollectionById = async (context: ServiceContext<Clients>) => {
     throw new UserInputError('collection is required')
   }
 
-  // eslint-disable-next-line no-console
-  console.log('collection at new middleware:', collection)
-
   const response = await context.clients.collection.getCollection(
     collection as string
   )

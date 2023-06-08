@@ -11,6 +11,12 @@ import { QueryProducts } from 'vtex.store-resources'
 
 import Skeleton from '../Skeleton/Skeleton'
 
+declare global {
+  interface Window {
+    __RUNTIME__: { workspace: string }
+  }
+}
+
 type PreferenceType =
   | 'FIRST_AVAILABLE'
   | 'LAST_AVAILABLE'
@@ -198,33 +204,59 @@ const ListProductsCollectionOrder = (props: PropsWithChildren<Props>) => {
 
   useEffect(() => {
     if (orderBy === ORDER_BY_OPTIONS.COLLECTION.value) {
-      fetch(`/_v/collection/${collection}`, {
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'same-origin',
-      })
-        .then(res => res.json())
-        .then(json => {
-          if (products?.length && products?.length === json?.Data?.length) {
-            const newReorderedProducts: typeof products = []
+      const collectionFromLocalStorage = JSON.parse(
+        localStorage.getItem(`collection-${collection}`) ?? 'null'
+      )
 
-            json?.Data.forEach((p, index: number) => {
-              products.forEach(product => {
-                if (+(product.productId as string) === p.ProductId) {
-                  newReorderedProducts[index] = product
-                }
-              })
-            })
-            setReorderedProducts(newReorderedProducts)
+      const now = Date.now()
+
+      if (
+        collectionFromLocalStorage?.products &&
+        now - collectionFromLocalStorage.timestamp < 5 * 60 * 1000
+      ) {
+        setReorderedProducts(collectionFromLocalStorage?.products)
+        setLoadingRest(false)
+      } else {
+        fetch(
+          `/_v/collection/${collection}?workspace=${window?.__RUNTIME__?.workspace}`,
+          {
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
           }
-        })
-        .catch(e => {
-          console.error(
-            'Showing default order because of an error retrieving collection:',
-            e
-          )
-          setReorderedProducts(products)
-        })
-        .finally(() => setLoadingRest(false))
+        )
+          .then(res => res.json())
+          .then(json => {
+            if (products?.length && products?.length === json?.Data?.length) {
+              const newReorderedProducts: typeof products = []
+
+              json?.Data.forEach((p, index: number) => {
+                products.forEach(product => {
+                  if (+(product.productId as string) === p.ProductId) {
+                    newReorderedProducts[index] = product
+                  }
+                })
+              })
+
+              setReorderedProducts(newReorderedProducts)
+
+              localStorage.setItem(
+                `collection-${collection}`,
+                JSON.stringify({
+                  products: [...newReorderedProducts],
+                  timestamp: Date.now(),
+                })
+              )
+            }
+          })
+          .catch(e => {
+            console.error(
+              'Showing default order because of an error retrieving collection:',
+              e
+            )
+            setReorderedProducts(products)
+          })
+          .finally(() => setLoadingRest(false))
+      }
     } else {
       setReorderedProducts(products)
       setLoadingRest(false)
@@ -237,7 +269,7 @@ const ListProductsCollectionOrder = (props: PropsWithChildren<Props>) => {
   }
 
   if (error) {
-    return 'Erro ao recuperar coleção'
+    return 'Erro ao recuperar lista de produtos'
   }
 
   return (
