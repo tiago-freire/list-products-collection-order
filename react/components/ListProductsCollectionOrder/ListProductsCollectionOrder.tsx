@@ -174,6 +174,7 @@ const ListProductsCollectionOrder = (props: PropsWithChildren<Props>) => {
   })
 
   const { products } = data ?? {}
+
   const [reorderedProducts, setReorderedProducts] = useState<
     typeof products | undefined
   >(products)
@@ -201,77 +202,56 @@ const ListProductsCollectionOrder = (props: PropsWithChildren<Props>) => {
   )
 
   useEffect(() => {
+    if (!products) return
     if (orderBy === ORDER_BY_OPTIONS.COLLECTION.value) {
-      const collectionFromLocalStorage = JSON.parse(
-        localStorage.getItem(`collection-${collection}`) ?? 'null'
+      fetch(
+        `/_v/collection/${collection}?workspace=${window?.__RUNTIME__?.workspace}`,
+        {
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'same-origin',
+        }
       )
-
-      const now = Date.now()
-
-      if (
-        collectionFromLocalStorage?.products &&
-        now - collectionFromLocalStorage.timestamp < 5 * 60 * 1000
-      ) {
-        setReorderedProducts(collectionFromLocalStorage?.products)
-        setLoadingRest(false)
-      } else {
-        fetch(
-          `/_v/collection/${collection}?workspace=${window?.__RUNTIME__?.workspace}`,
-          {
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'same-origin',
-          }
-        )
-          .then(res => {
-            if (!res.ok) {
-              res.json().then(jsonError => {
-                throw new Error(
-                  jsonError?.message ?? 'Error fetching collection products'
-                )
-              })
-            }
-
-            return res.json()
-          })
-          .then(json => {
-            if (products?.length && products?.length !== json?.Data?.length) {
-              throw new Error('Collection products length does not match')
-            }
-
-            const newReorderedProducts: typeof products = []
-
-            json?.Data.forEach((p: { ProductId: number }, index: number) => {
-              products?.forEach(product => {
-                if (+(product.productId as string) === p.ProductId) {
-                  newReorderedProducts[index] = product
-                }
-              })
+        .then(res => {
+          if (!res.ok) {
+            res.json().then(jsonError => {
+              throw new Error(
+                jsonError?.message ?? 'Error fetching collection products'
+              )
             })
+          }
 
-            setReorderedProducts(newReorderedProducts)
+          return res.json()
+        })
+        .then(json => {
+          if (products?.length && products?.length !== json?.Data?.length) {
+            throw new Error('Collection products length does not match')
+          }
 
-            localStorage.setItem(
-              `collection-${collection}`,
-              JSON.stringify({
-                products: [...newReorderedProducts],
-                timestamp: Date.now(),
-              })
-            )
+          const newReorderedProducts: typeof products = []
+
+          json?.Data.forEach((p: { ProductId: number }, index: number) => {
+            products?.forEach(product => {
+              if (+(product.productId as string) === p.ProductId) {
+                newReorderedProducts[index] = product
+              }
+            })
           })
-          .catch(e => {
-            console.error(
-              'Showing default order because of an error retrieving collection:',
-              e
-            )
-            setReorderedProducts(products)
-          })
-          .finally(() => setLoadingRest(false))
-      }
+
+          setReorderedProducts(newReorderedProducts)
+        })
+        .catch(e => {
+          console.error(
+            'Showing default order because of an error retrieving collection:',
+            e
+          )
+          setReorderedProducts(products)
+        })
+        .finally(() => setLoadingRest(false))
     } else {
       setReorderedProducts(products)
       setLoadingRest(false)
     }
-  }, [orderBy, collection, products])
+  }, [collection, orderBy, products])
 
   if (loading || loadingRest) {
     return <Skeleton height={400} />
