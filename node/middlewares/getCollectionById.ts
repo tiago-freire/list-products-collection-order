@@ -17,13 +17,18 @@ const getCollectionById = async (context: ServiceContext<Clients>) => {
   }
 
   const response = await context.clients.collection.getCollection(
-    collection as string
+    String(collection)
   )
 
-  context.body = response
+  context.set('Access-Control-Allow-Origin', '*')
+  context.set('Access-Control-Allow-Headers', '*')
+  context.set('Access-Control-Allow-Credentials', 'true')
+  context.set('Access-Control-Allow-Methods', '*')
+  context.set('Content-Type', 'application/json')
+  context.set('Cache-Control', 'max-age=86400')
 
   context.status = 200
-  context.set('Cache-Control', 'no-cache')
+  context.body = response
 }
 
 export default getCollectionById

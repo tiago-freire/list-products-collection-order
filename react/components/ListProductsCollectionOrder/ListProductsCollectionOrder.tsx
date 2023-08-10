@@ -1,6 +1,4 @@
 /* eslint-disable react/react-in-jsx-scope */
-/* eslint-disable vtex/prefer-early-return */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { ComponentType, PropsWithChildren } from 'react'
 import { useCallback, useEffect, useState } from 'react'
 import { useQuery } from 'react-apollo'
@@ -224,29 +222,41 @@ const ListProductsCollectionOrder = (props: PropsWithChildren<Props>) => {
             credentials: 'same-origin',
           }
         )
-          .then(res => res.json())
-          .then(json => {
-            if (products?.length && products?.length === json?.Data?.length) {
-              const newReorderedProducts: typeof products = []
-
-              json?.Data.forEach((p, index: number) => {
-                products.forEach(product => {
-                  if (+(product.productId as string) === p.ProductId) {
-                    newReorderedProducts[index] = product
-                  }
-                })
+          .then(res => {
+            if (!res.ok) {
+              res.json().then(jsonError => {
+                throw new Error(
+                  jsonError?.message ?? 'Error fetching collection products'
+                )
               })
-
-              setReorderedProducts(newReorderedProducts)
-
-              localStorage.setItem(
-                `collection-${collection}`,
-                JSON.stringify({
-                  products: [...newReorderedProducts],
-                  timestamp: Date.now(),
-                })
-              )
             }
+
+            return res.json()
+          })
+          .then(json => {
+            if (products?.length && products?.length !== json?.Data?.length) {
+              throw new Error('Collection products length does not match')
+            }
+
+            const newReorderedProducts: typeof products = []
+
+            json?.Data.forEach((p: { ProductId: number }, index: number) => {
+              products?.forEach(product => {
+                if (+(product.productId as string) === p.ProductId) {
+                  newReorderedProducts[index] = product
+                }
+              })
+            })
+
+            setReorderedProducts(newReorderedProducts)
+
+            localStorage.setItem(
+              `collection-${collection}`,
+              JSON.stringify({
+                products: [...newReorderedProducts],
+                timestamp: Date.now(),
+              })
+            )
           })
           .catch(e => {
             console.error(
@@ -261,7 +271,6 @@ const ListProductsCollectionOrder = (props: PropsWithChildren<Props>) => {
       setReorderedProducts(products)
       setLoadingRest(false)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orderBy, collection, products])
 
   if (loading || loadingRest) {
