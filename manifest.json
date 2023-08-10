@@ -1,7 +1,7 @@
 {
   "vendor": "ssesandbox04",
   "name": "list-products-collection-order",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "builders": {
     "node": "6.x",
     "store": "0.x",
